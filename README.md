@@ -245,6 +245,7 @@ Heading Command
 
 # Kết quả mô phỏng
 
+![Gazebo Lidar Simulation](images/lidar_gazebo_sim.png)
 
 
 

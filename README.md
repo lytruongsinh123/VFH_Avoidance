@@ -249,4 +249,22 @@ Heading Command
 
 Hình minh họa dữ liệu quét LiDAR trong mô phỏng Gazebo. Các tia quét màu xanh được sử dụng làm đầu vào cho thuật toán **VFH\*** để phát hiện vật cản và lựa chọn hướng di chuyển an toàn cho robot. Hai bên là hai bức tường chắn màu đen.
 
+---
+
+![Histogram Grid](px4_avoidance/images/histogram_grid.png)
+
+Hình trên biểu diễn **Histogram Grid** được xây dựng từ dữ liệu quét LiDAR. 
+Không gian xung quanh robot được chia thành các ô lưới 2D, trong đó mỗi ô lưu trữ mật độ vật cản dựa trên khoảng cách và hướng của các điểm đo LiDAR. Ở đây các ô 2D màu xanh là mật độ cao, còn lại màu vàng là mật độ thấp.
+Các ô có mật độ cao tương ứng với khu vực gần vật cản, trong khi các ô có mật độ thấp biểu diễn không gian tự do. 
+Histogram Grid là bước trung gian quan trọng trước khi chuyển đổi sang **Polar Histogram** trong thuật toán VFH\* để xác định các hướng di chuyển an toàn.
+
+---
+
+![Polar Histogram Grid](px4_avoidance/images/polar_histogram.png)
+
+Hình trên biểu diễn **Polar Histogram** được chuyển đổi từ Histogram Grid. 
+Thay vì biểu diễn vật cản trong hệ tọa độ Descartes (x–y), dữ liệu được chuyển sang dạng histogram theo góc quanh robot. 
+Mỗi sector trong biểu đồ tương ứng với một hướng quan sát và giá trị của nó thể hiện mật độ vật cản theo hướng đó. 
+Các sector có giá trị lớn cho thấy sự hiện diện của vật cản, trong khi các sector có giá trị nhỏ biểu diễn các hướng có thể di chuyển an toàn. 
+Polar Histogram là cơ sở để thuật toán **VFH\*** xác định các hướng tự do và lựa chọn hướng di chuyển tối ưu cho robot.
 

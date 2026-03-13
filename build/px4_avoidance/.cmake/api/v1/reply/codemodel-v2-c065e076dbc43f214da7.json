@@ -1,0 +1,88 @@
+{
+	"configurations" : 
+	[
+		{
+			"directories" : 
+			[
+				{
+					"build" : ".",
+					"hasInstallRule" : true,
+					"jsonFile" : "directory-.-3f8776c7b8def2eb1f25.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.15"
+					},
+					"projectIndex" : 0,
+					"source" : ".",
+					"targetIndexes" : 
+					[
+						0,
+						1,
+						2,
+						3
+					]
+				}
+			],
+			"name" : "",
+			"projects" : 
+			[
+				{
+					"directoryIndexes" : 
+					[
+						0
+					],
+					"name" : "px4_avoidance",
+					"targetIndexes" : 
+					[
+						0,
+						1,
+						2,
+						3
+					]
+				}
+			],
+			"targets" : 
+			[
+				{
+					"directoryIndex" : 0,
+					"id" : "odom_tf::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-odom_tf-b4b31898c60cc7a45510.json",
+					"name" : "odom_tf",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "px4_avoidance_uninstall::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-px4_avoidance_uninstall-9306da58a2e6fa9948f0.json",
+					"name" : "px4_avoidance_uninstall",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "uninstall::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-uninstall-a94ebdf17afbb7abdacb.json",
+					"name" : "uninstall",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "vfh_star_node::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-vfh_star_node-1e1a6996bf86a5964ae3.json",
+					"name" : "vfh_star_node",
+					"projectIndex" : 0
+				}
+			]
+		}
+	],
+	"kind" : "codemodel",
+	"paths" : 
+	{
+		"build" : "/home/hung/ws_offboard_control/src/build/px4_avoidance",
+		"source" : "/home/hung/ws_offboard_control/src/px4_avoidance"
+	},
+	"version" : 
+	{
+		"major" : 2,
+		"minor" : 6
+	}
+}

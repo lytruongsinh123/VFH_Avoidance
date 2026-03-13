@@ -1,0 +1,299 @@
+#include "rclcpp/rclcpp.hpp"
+#include "sensor_msgs/msg/laser_scan.hpp"
+#include "visualization_msgs/msg/marker.hpp"
+#include "visualization_msgs/msg/marker_array.hpp"
+#include "nav_msgs/msg/odometry.hpp"
+#include "nav_msgs/msg/grid_cells.hpp"
+#include "geometry_msgs/msg/point.hpp"
+#include "std_msgs/msg/float32_multi_array.hpp"
+
+#include "px4_avoidance/lidar_processing.hpp"
+#include "px4_avoidance/histogram_grid.hpp"
+#include "px4_avoidance/polar_histogram.hpp"
+#include "px4_avoidance/binary_histogram.hpp"
+#include "px4_avoidance/candidate_search.hpp"
+
+#include <memory>
+#include <cmath>
+
+class VFHStarNode : public rclcpp::Node
+{
+
+public:
+
+    VFHStarNode() : Node("vfh_star_node"), lidar_(30.0), binary_hist_(54), candidate_search_(18, -135.0, 15.0), current_altitude_(0.0)
+    {
+
+        scan_sub_ = this->create_subscription<sensor_msgs::msg::LaserScan>(
+            "/world/default/model/x500_lidar_2d_0/link/link/sensor/lidar_2d_v2/scan",
+            10,
+            std::bind(&VFHStarNode::scanCallback, this, std::placeholders::_1)
+        );
+        odom_sub_ = this->create_subscription<nav_msgs::msg::Odometry>(
+            "/odom",
+            10,
+            std::bind(&VFHStarNode::odomCallback, this, std::placeholders::_1)
+        );
+        marker_pub_ = this->create_publisher<visualization_msgs::msg::Marker>(
+            "/lidar_points",
+            10
+        );
+        hist_pub_ = this->create_publisher<visualization_msgs::msg::Marker>(
+            "/polar_histogram",
+            10
+        );
+        grid_obstacle_pub_ = this->create_publisher<nav_msgs::msg::GridCells>(
+            "/grid_obstacle",
+            10
+        );
+        grid_empty_pub_ = this->create_publisher<nav_msgs::msg::GridCells>(
+            "/grid_empty",
+            10
+        );
+        plot_pub_ = this->create_publisher<std_msgs::msg::Float32MultiArray>(
+            "/polot_histogram", 
+            10
+        );
+        candidate_pub_ = this->create_publisher<visualization_msgs::msg::MarkerArray>(
+            "/candidate_direction",
+            10
+        );
+    }
+
+private:
+
+    void scanCallback(const sensor_msgs::msg::LaserScan::SharedPtr msg)
+    {
+
+        auto points = lidar_.processScan(
+            msg->ranges,
+            msg->angle_min,
+            msg->angle_increment
+        );
+
+        // RCLCPP_INFO(this->get_logger(), "Points received: %ld", points.size());
+
+        // Build Histogram Grid
+        histogram_.clear();
+        histogram_.build(points);
+
+        // Build Polar Histogram
+        polar_hist_.clear();
+        polar_hist_.build(histogram_.grid);
+        
+        // Plot
+        std_msgs::msg::Float32MultiArray plot_msg;
+        plot_msg.data.assign(
+            polar_hist_.hist.begin(),
+            polar_hist_.hist.end()
+        );
+        // thêm threshold
+        plot_msg.data.push_back(binary_hist_.getTlow());
+        plot_msg.data.push_back(binary_hist_.getThigh());
+        plot_pub_->publish(plot_msg);
+
+        // Build Binary Histogram
+        binary_hist_.build(polar_hist_.hist);
+        
+
+        // Find candidate search
+        auto candidates = candidate_search_.findCandidates(binary_hist_.hist);
+        
+
+        // Publish
+        publishPoints(points);
+        publishGrid();
+        publishPolarHistogram();
+        publishCandidates(candidates);
+    }
+
+    void publishPoints(const std::vector<Point2D>& points)
+    {
+
+        visualization_msgs::msg::Marker marker;
+
+        marker.header.frame_id = "base_link";
+        marker.header.stamp = this->now();
+
+        marker.ns = "lidar_points";
+        marker.id = 0;
+
+        marker.type = visualization_msgs::msg::Marker::POINTS;
+        marker.action = visualization_msgs::msg::Marker::ADD;
+
+        marker.scale.x = 0.05;
+        marker.scale.y = 0.05;
+
+        marker.color.r = 1.0;
+        marker.color.g = 0.0;
+        marker.color.b = 0.0;
+        marker.color.a = 1.0;
+
+        for (const auto &p : points)
+        {
+            geometry_msgs::msg::Point pt;
+
+            pt.x = p.x;
+            pt.y = p.y;
+            pt.z = current_altitude_;
+
+            marker.points.push_back(pt);
+        }
+
+        marker_pub_->publish(marker);
+    }
+
+    void publishGrid()
+    {
+
+        nav_msgs::msg::GridCells obstacle_cells;
+        nav_msgs::msg::GridCells empty_cells;
+
+        int center = HistogramGrid::GRID / 2;
+        double res = 0.1;
+
+        obstacle_cells.header.frame_id = "base_link";
+        obstacle_cells.header.stamp = this->now();
+        obstacle_cells.cell_width = res;
+        obstacle_cells.cell_height = res;
+
+        empty_cells = obstacle_cells;
+
+        for(int i = 0; i < HistogramGrid::GRID; i++)
+        {
+            for(int j = 0; j < HistogramGrid::GRID; j++)
+            {
+
+                geometry_msgs::msg::Point pt;
+
+                pt.x = (i - center) * res;
+                pt.y = (j - center) * res;
+                pt.z = current_altitude_;
+
+                if(histogram_.grid[i][j] > 0)
+                    obstacle_cells.cells.push_back(pt);
+                else
+                    empty_cells.cells.push_back(pt);
+            }
+        }
+
+        grid_obstacle_pub_->publish(obstacle_cells);
+        grid_empty_pub_->publish(empty_cells);
+    }
+
+    void publishPolarHistogram()
+    {
+
+        visualization_msgs::msg::Marker marker;
+
+        marker.header.frame_id = "base_link";
+        marker.header.stamp = this->now();
+
+        marker.ns = "polar_histogram";
+        marker.id = 0;
+
+        marker.type = visualization_msgs::msg::Marker::LINE_LIST;
+        marker.action = visualization_msgs::msg::Marker::ADD;
+
+        marker.scale.x = 0.05;
+
+        marker.color.r = 1.0;
+        marker.color.g = 0.0;
+        marker.color.b = 0.0;
+        marker.color.a = 1.0;
+
+        geometry_msgs::msg::Point origin;
+
+        origin.x = 0;
+        origin.y = 0;
+        origin.z = current_altitude_;
+
+        for(int k = 0; k < PolarHistogram::SECTOR; k++)
+        {
+
+            double angle =
+                (PolarHistogram::ANGLE_MIN + k * PolarHistogram::ALPHA)
+                * M_PI / 180.0;
+
+            double length = polar_hist_.hist[k] * 0.1;
+
+            geometry_msgs::msg::Point end;
+
+            end.x = cos(angle) * length;
+            end.y = sin(angle) * length;
+            end.z = current_altitude_;
+
+            marker.points.push_back(origin);
+            marker.points.push_back(end);
+        }
+
+        hist_pub_->publish(marker);
+    }
+
+    void publishCandidates(const std::vector<double>& candidates)
+    {
+        visualization_msgs::msg::MarkerArray marker_array;
+        int id = 0;
+        for(double angle_deg : candidates)
+        {
+            visualization_msgs::msg::Marker marker;
+            marker.header.frame_id = "base_link";
+            marker.header.stamp = this->now();
+            marker.ns = "candidate";
+            marker.id = id++;
+            marker.type = visualization_msgs::msg::Marker::ARROW;
+            marker.action = visualization_msgs::msg::Marker::ADD;
+            double angle = angle_deg * M_PI / 180.0;
+            geometry_msgs::msg::Point p1, p2;
+            p1.x = 0;
+            p1.y = 0;
+            p1.z = 0;
+            p2.x = 4 * cos(angle);
+            p2.y = 4 * sin(angle);
+            p2.z = 0;
+            marker.points.push_back(p1);
+            marker.points.push_back(p2);
+            marker.scale.x = 0.1;
+            marker.scale.y = 0.2;
+            marker.scale.z = 0.2;
+            marker.color.a = 1.0;
+            marker.color.r = 0.0;
+            marker.color.g = 0.0;
+            marker.color.b = 1.0;
+            marker_array.markers.push_back(marker);
+        }
+        candidate_pub_->publish(marker_array);
+    }
+
+    void odomCallback(const nav_msgs::msg::Odometry::SharedPtr msg)
+    {
+        current_altitude_ = msg->pose.pose.position.z;
+    }
+
+
+    rclcpp::Subscription<sensor_msgs::msg::LaserScan>::SharedPtr scan_sub_;
+    rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr odom_sub_;
+    rclcpp::Publisher<visualization_msgs::msg::Marker>::SharedPtr marker_pub_;
+    rclcpp::Publisher<visualization_msgs::msg::Marker>::SharedPtr hist_pub_;
+    rclcpp::Publisher<nav_msgs::msg::GridCells>::SharedPtr grid_obstacle_pub_;
+    rclcpp::Publisher<nav_msgs::msg::GridCells>::SharedPtr grid_empty_pub_;
+    rclcpp::Publisher<std_msgs::msg::Float32MultiArray>::SharedPtr plot_pub_;
+    rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr candidate_pub_;
+
+    LidarProcessing lidar_;
+    HistogramGrid histogram_;
+    PolarHistogram polar_hist_;
+    BinaryHistogram binary_hist_;
+    CandidateSearch candidate_search_;
+
+    double current_altitude_;
+};
+
+int main(int argc, char **argv)
+{
+    rclcpp::init(argc, argv);
+    auto node = std::make_shared<VFHStarNode>();
+    rclcpp::spin(node);
+    rclcpp::shutdown();
+    return 0;
+}

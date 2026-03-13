@@ -1,0 +1,17 @@
+/home/hung/ws_offboard_control/src/install/px4_avoidance/lib/px4_avoidance/vfh_star_node
+/home/hung/ws_offboard_control/src/install/px4_avoidance/lib/px4_avoidance/odom_tf
+/home/hung/ws_offboard_control/src/install/px4_avoidance/share/ament_index/resource_index/package_run_dependencies/px4_avoidance
+/home/hung/ws_offboard_control/src/install/px4_avoidance/share/ament_index/resource_index/parent_prefix_path/px4_avoidance
+/home/hung/ws_offboard_control/src/install/px4_avoidance/share/px4_avoidance/environment/ament_prefix_path.sh
+/home/hung/ws_offboard_control/src/install/px4_avoidance/share/px4_avoidance/environment/ament_prefix_path.dsv
+/home/hung/ws_offboard_control/src/install/px4_avoidance/share/px4_avoidance/environment/path.sh
+/home/hung/ws_offboard_control/src/install/px4_avoidance/share/px4_avoidance/environment/path.dsv
+/home/hung/ws_offboard_control/src/install/px4_avoidance/share/px4_avoidance/local_setup.bash
+/home/hung/ws_offboard_control/src/install/px4_avoidance/share/px4_avoidance/local_setup.sh
+/home/hung/ws_offboard_control/src/install/px4_avoidance/share/px4_avoidance/local_setup.zsh
+/home/hung/ws_offboard_control/src/install/px4_avoidance/share/px4_avoidance/local_setup.dsv
+/home/hung/ws_offboard_control/src/install/px4_avoidance/share/px4_avoidance/package.dsv
+/home/hung/ws_offboard_control/src/install/px4_avoidance/share/ament_index/resource_index/packages/px4_avoidance
+/home/hung/ws_offboard_control/src/install/px4_avoidance/share/px4_avoidance/cmake/px4_avoidanceConfig.cmake
+/home/hung/ws_offboard_control/src/install/px4_avoidance/share/px4_avoidance/cmake/px4_avoidanceConfig-version.cmake
+/home/hung/ws_offboard_control/src/install/px4_avoidance/share/px4_avoidance/package.xml

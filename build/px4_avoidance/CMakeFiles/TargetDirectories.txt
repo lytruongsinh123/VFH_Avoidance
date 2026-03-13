@@ -1,0 +1,11 @@
+/home/hung/ws_offboard_control/src/build/px4_avoidance/CMakeFiles/uninstall.dir
+/home/hung/ws_offboard_control/src/build/px4_avoidance/CMakeFiles/px4_avoidance_uninstall.dir
+/home/hung/ws_offboard_control/src/build/px4_avoidance/CMakeFiles/vfh_star_node.dir
+/home/hung/ws_offboard_control/src/build/px4_avoidance/CMakeFiles/odom_tf.dir
+/home/hung/ws_offboard_control/src/build/px4_avoidance/CMakeFiles/test.dir
+/home/hung/ws_offboard_control/src/build/px4_avoidance/CMakeFiles/edit_cache.dir
+/home/hung/ws_offboard_control/src/build/px4_avoidance/CMakeFiles/rebuild_cache.dir
+/home/hung/ws_offboard_control/src/build/px4_avoidance/CMakeFiles/list_install_components.dir
+/home/hung/ws_offboard_control/src/build/px4_avoidance/CMakeFiles/install.dir
+/home/hung/ws_offboard_control/src/build/px4_avoidance/CMakeFiles/install/local.dir
+/home/hung/ws_offboard_control/src/build/px4_avoidance/CMakeFiles/install/strip.dir

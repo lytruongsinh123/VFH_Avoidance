@@ -162,7 +162,11 @@ Node này:
 | -------------- | --------------------- | ---------------- |
 | `/scan`        | sensor_msgs/LaserScan | dữ liệu LiDAR    |
 | `/odom`        | nav_msgs/Odometry     | vị trí robot/UAV |
-| `/cmd_heading` | geometry_msgs/Vector3 | hướng di chuyển  |
+| `/lidar_point` | visualization_msgs/marker | dữ liệu lidar quét được dưới dạng điểm  |
+| `/polar_histogram` | visualization_msgs/marker | phạm vi lidar dưới dạng biểu đồ cực và các sectors  |
+| `/grid_obstacle` | nav_msgs/grid_cells | chuyển dữ liệu điểm thành dạng các điểm ô vuông  |
+| `/polot_histogram` | std_msgs/float32_multi_array | bảng dữ liệu mật độ vật cản theo các hướng  |
+| `/candidate_direction` | visualization_msgs/marker_array | hướng di chuyển  |
 
 ---
 
@@ -236,5 +240,11 @@ VFH* Node
    ↓
 Heading Command
 ```
+
+---
+
+# Kết quả mô phỏng
+
+
 
 

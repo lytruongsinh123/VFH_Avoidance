@@ -245,7 +245,8 @@ Heading Command
 
 # Kết quả mô phỏng
 
-![Gazebo Lidar Simulation](images/lidar_gazebo_sim.png)
+![Gazebo Lidar Simulation](px4_avoidance/images/lidar_gazebo_sim.png)
 
+Hình minh họa dữ liệu quét LiDAR trong mô phỏng Gazebo. Các tia quét màu xanh được sử dụng làm đầu vào cho thuật toán **VFH\*** để phát hiện vật cản và lựa chọn hướng di chuyển an toàn cho robot. Hai bên là hai bức tường chắn màu đen.
 
 

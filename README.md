@@ -270,7 +270,7 @@ Polar Histogram là cơ sở để thuật toán **VFH\*** xác định các hư
 
 ---
 
-![Lidar Histogram Grid](px4_avoidance/images/lidar_histogram_grid)
+![Lidar Histogram Grid](px4_avoidance/images/lidar_histogram_grid.png)
 
 Hình trên kiểm tra độ lệch giữa lidar thực sự và các vật cản sau khi chuyển thành grid 2D
 

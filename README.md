@@ -268,3 +268,38 @@ Mỗi sector trong biểu đồ tương ứng với một hướng quan sát và
 Các sector có giá trị lớn cho thấy sự hiện diện của vật cản, trong khi các sector có giá trị nhỏ biểu diễn các hướng có thể di chuyển an toàn. 
 Polar Histogram là cơ sở để thuật toán **VFH\*** xác định các hướng tự do và lựa chọn hướng di chuyển tối ưu cho robot.
 
+---
+
+![Lidar Histogram Grid](px4_avoidance/images/polar_histogram.png)
+
+Hình trên kiểm tra độ lệch giữa lidar thực sự và các vật cản sau khi chuyển thành grid 2D
+
+---
+
+![Density Free](px4_avoidance/images/density_free.png)
+
+Hình trên biểu diễn **Polar Histogram** được xây dựng từ dữ liệu LiDAR sau khi xử lý Histogram Grid. 
+Trục hoành biểu diễn **góc quan sát quanh robot** (tính theo độ), trong khi trục tung biểu diễn **mật độ vật cản H(k)** tương ứng với mỗi sector góc.
+
+Các cột histogram thể hiện mức độ hiện diện của vật cản theo từng hướng. Giá trị càng lớn cho thấy mật độ vật cản càng cao theo hướng đó. 
+Hai đường nét đứt **T_low** và **T_high** là các ngưỡng được sử dụng trong thuật toán **VFH\*** để phân loại các sector thành:
+
+- **Sector bị chặn (occupied)**: khi giá trị H(k) lớn hơn ngưỡng trên.
+- **Sector tự do (free)**: khi giá trị H(k) nhỏ hơn ngưỡng dưới.
+
+Các sector có giá trị thấp giữa hai ngưỡng biểu thị các hướng tiềm năng mà robot có thể lựa chọn để di chuyển an toàn và tránh va chạm với vật cản.
+
+---
+
+![Candidate Search](px4_avoidance/images/candidate_search.png)
+
+Hình trên minh họa môi trường **Histogram Grid 2D** được xây dựng từ dữ liệu LiDAR trong thuật toán **VFH\***.
+
+- **Các đường màu xanh lá** biểu diễn **các ô lưới (2D grid cells)** dùng để mô tả mật độ vật cản trong không gian xung quanh robot.
+- **Robot/UAV** nằm tại tâm của hệ tọa độ.
+- **Các mũi tên màu xanh đậm** thể hiện **các hướng di chuyển ứng viên (candidate directions)** mà thuật toán có thể lựa chọn.
+- **Đường màu xanh nước** biểu diễn **hướng mục tiêu mong muốn (target direction)**.
+
+Từ các hướng ứng viên này, thuật toán **VFH\*** sẽ sử dụng **hàm chi phí (cost function)** để lựa chọn hướng tối ưu nhất, đảm bảo robot di chuyển về phía mục tiêu đồng thời tránh va chạm với các vật cản trong môi trường.
+
+---

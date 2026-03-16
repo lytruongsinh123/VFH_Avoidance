@@ -96,8 +96,18 @@ private:
         binary_hist_.build(polar_hist_.hist);
         
 
-        // Find candidate search
-        auto candidates = candidate_search_.findCandidates(binary_hist_.hist);
+        // Target direction
+        double target_angle = 0.0;
+
+        int target_sector =
+            (target_angle - PolarHistogram::ANGLE_MIN) / PolarHistogram::ALPHA;
+
+        // Candidate search
+        auto candidates =
+            candidate_search_.findCandidates(
+                binary_hist_.hist,
+                target_sector
+            );
         
 
         // Publish
@@ -247,15 +257,16 @@ private:
             geometry_msgs::msg::Point p1, p2;
             p1.x = 0;
             p1.y = 0;
-            p1.z = 0;
+            p1.z = current_altitude_;
             p2.x = 4 * cos(angle);
             p2.y = 4 * sin(angle);
-            p2.z = 0;
+            p2.z = current_altitude_;
             marker.points.push_back(p1);
             marker.points.push_back(p2);
             marker.scale.x = 0.1;
             marker.scale.y = 0.2;
             marker.scale.z = 0.2;
+            
             marker.color.a = 1.0;
             marker.color.r = 0.0;
             marker.color.g = 0.0;

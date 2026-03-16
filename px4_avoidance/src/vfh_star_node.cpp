@@ -12,6 +12,7 @@
 #include "px4_avoidance/polar_histogram.hpp"
 #include "px4_avoidance/binary_histogram.hpp"
 #include "px4_avoidance/candidate_search.hpp"
+#include "px4_avoidance/cost_function.hpp"
 
 #include <memory>
 #include <cmath>
@@ -21,7 +22,12 @@ class VFHStarNode : public rclcpp::Node
 
 public:
 
-    VFHStarNode() : Node("vfh_star_node"), lidar_(30.0), binary_hist_(54), candidate_search_(18, -135.0, 15.0), current_altitude_(0.0)
+    VFHStarNode() : Node("vfh_star_node"), 
+    lidar_(30.0), 
+    binary_hist_(54), 
+    candidate_search_(18, -135.0, 15.0), 
+    cost_function_(5.0, 2.0, 2.0),
+    current_altitude_(0.0)
     {
 
         scan_sub_ = this->create_subscription<sensor_msgs::msg::LaserScan>(
@@ -56,6 +62,10 @@ public:
         );
         candidate_pub_ = this->create_publisher<visualization_msgs::msg::MarkerArray>(
             "/candidate_direction",
+            10
+        );
+        best_dir_pub_ = this->create_publisher<visualization_msgs::msg::Marker>(
+            "/best_direction",
             10
         );
     }
@@ -98,7 +108,6 @@ private:
 
         // Target direction
         double target_angle = 0.0;
-
         int target_sector =
             (target_angle - PolarHistogram::ANGLE_MIN) / PolarHistogram::ALPHA;
 
@@ -107,14 +116,28 @@ private:
             candidate_search_.findCandidates(
                 binary_hist_.hist,
                 target_sector
-            );
-        
+        );
+
+        // Robot heading (tạm thời)
+        double robot_heading = 0.0;
+
+        // Cost function
+        double best_direction =
+            cost_function_.selectBest(
+                candidates,
+                target_angle,
+                robot_heading,
+                previous_direction_
+        );
+        // cập nhật hướng trước
+        previous_direction_ = best_direction;
 
         // Publish
         publishPoints(points);
         publishGrid();
         publishPolarHistogram();
         publishCandidates(candidates);
+        publishBestDirection(best_direction);
     }
 
     void publishPoints(const std::vector<Point2D>& points)
@@ -218,7 +241,7 @@ private:
         origin.y = 0;
         origin.z = current_altitude_;
 
-        for(int k = 0; k < PolarHistogram::SECTOR; k++)
+        for(int k = 0; k <= PolarHistogram::SECTOR; k++)
         {
 
             double angle =
@@ -229,8 +252,8 @@ private:
 
             geometry_msgs::msg::Point end;
 
-            end.x = cos(angle) * length;
-            end.y = sin(angle) * length;
+            end.x = cos(angle) * 6;
+            end.y = sin(angle) * 6;
             end.z = current_altitude_;
 
             marker.points.push_back(origin);
@@ -266,7 +289,7 @@ private:
             marker.scale.x = 0.1;
             marker.scale.y = 0.2;
             marker.scale.z = 0.2;
-            
+
             marker.color.a = 1.0;
             marker.color.r = 0.0;
             marker.color.g = 0.0;
@@ -274,6 +297,46 @@ private:
             marker_array.markers.push_back(marker);
         }
         candidate_pub_->publish(marker_array);
+    }
+
+    void publishBestDirection(double angle_deg)
+    {
+        visualization_msgs::msg::Marker marker;
+
+        marker.header.frame_id = "base_link";
+        marker.header.stamp = this->now();
+
+        marker.ns = "best_direction";
+        marker.id = 0;
+
+        marker.type = visualization_msgs::msg::Marker::ARROW;
+        marker.action = visualization_msgs::msg::Marker::ADD;
+
+        double angle = angle_deg * M_PI / 180.0;
+
+        geometry_msgs::msg::Point p1, p2;
+
+        p1.x = 0;
+        p1.y = 0;
+        p1.z = current_altitude_;
+
+        p2.x = 5 * cos(angle);
+        p2.y = 5 * sin(angle);
+        p2.z = current_altitude_;
+
+        marker.points.push_back(p1);
+        marker.points.push_back(p2);
+
+        marker.scale.x = 0.15;
+        marker.scale.y = 0.3;
+        marker.scale.z = 0.3;
+
+        marker.color.a = 1.0;
+        marker.color.r = 0.0;
+        marker.color.g = 1.0;
+        marker.color.b = 0.0;
+
+        best_dir_pub_->publish(marker);
     }
 
     void odomCallback(const nav_msgs::msg::Odometry::SharedPtr msg)
@@ -290,14 +353,17 @@ private:
     rclcpp::Publisher<nav_msgs::msg::GridCells>::SharedPtr grid_empty_pub_;
     rclcpp::Publisher<std_msgs::msg::Float32MultiArray>::SharedPtr plot_pub_;
     rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr candidate_pub_;
+    rclcpp::Publisher<visualization_msgs::msg::Marker>::SharedPtr best_dir_pub_;
 
     LidarProcessing lidar_;
     HistogramGrid histogram_;
     PolarHistogram polar_hist_;
     BinaryHistogram binary_hist_;
     CandidateSearch candidate_search_;
+    CostFunction cost_function_;
 
     double current_altitude_;
+    double previous_direction_ = 0.0;
 };
 
 int main(int argc, char **argv)

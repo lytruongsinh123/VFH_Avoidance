@@ -21,7 +21,7 @@ std::vector<double> CandidateSearch::findCandidates(
 
     findOpenings(B, openings);
 
-    int smax = std::round(16.0 / sector_angle_);
+    int smax = std::round(30.0 / sector_angle_);
 
     for(const auto& op : openings)
     {
@@ -32,7 +32,7 @@ std::vector<double> CandidateSearch::findCandidates(
 
         if(width <= smax)
         {
-            int kc = (kr + kl) / 2;
+            double kc = (double)(kr + kl) / 2.0;
 
             double angle =
                 angle_min_ + kc * sector_angle_;

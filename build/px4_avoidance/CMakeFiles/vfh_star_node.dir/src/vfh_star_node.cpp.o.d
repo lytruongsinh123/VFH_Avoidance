@@ -757,4 +757,5 @@ CMakeFiles/vfh_star_node.dir/src/vfh_star_node.cpp.o: \
  /home/hung/ws_offboard_control/src/px4_avoidance/include/px4_avoidance/polar_histogram.hpp \
  /home/hung/ws_offboard_control/src/px4_avoidance/include/px4_avoidance/histogram_grid.hpp \
  /home/hung/ws_offboard_control/src/px4_avoidance/include/px4_avoidance/binary_histogram.hpp \
- /home/hung/ws_offboard_control/src/px4_avoidance/include/px4_avoidance/candidate_search.hpp
+ /home/hung/ws_offboard_control/src/px4_avoidance/include/px4_avoidance/candidate_search.hpp \
+ /home/hung/ws_offboard_control/src/px4_avoidance/include/px4_avoidance/cost_function.hpp

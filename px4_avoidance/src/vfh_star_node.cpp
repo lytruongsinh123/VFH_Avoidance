@@ -6,6 +6,8 @@
 #include "nav_msgs/msg/grid_cells.hpp"
 #include "geometry_msgs/msg/point.hpp"
 #include "std_msgs/msg/float32_multi_array.hpp"
+#include <tf2/LinearMath/Quaternion.h>
+#include <tf2/LinearMath/Matrix3x3.h>
 
 #include "px4_avoidance/lidar_processing.hpp"
 #include "px4_avoidance/histogram_grid.hpp"
@@ -13,21 +15,25 @@
 #include "px4_avoidance/binary_histogram.hpp"
 #include "px4_avoidance/candidate_search.hpp"
 #include "px4_avoidance/cost_function.hpp"
+#include "px4_avoidance/offboard_controll.hpp"
 
 #include <memory>
 #include <cmath>
-
+#include <algorithm>
 class VFHStarNode : public rclcpp::Node
 {
 
 public:
 
-    VFHStarNode() : Node("vfh_star_node"), 
+    VFHStarNode(std::shared_ptr<OffboardControl> offboard) 
+    : Node("vfh_star_node"),
+    offboard_(offboard), 
     lidar_(30.0), 
     binary_hist_(27), 
     candidate_search_(27, -135.0, 10.0), 
     cost_function_(5.0, 2.0, 2.0),
-    current_altitude_(0.0)
+    current_altitude_(0.0),
+    current_yaw_(0.0)
     {
 
         scan_sub_ = this->create_subscription<sensor_msgs::msg::LaserScan>(
@@ -118,7 +124,7 @@ private:
         );
 
         // Robot heading (tạm thời)
-        double robot_heading = 0.0;
+        double robot_heading = current_yaw_ * 180.0 / M_PI;
 
         // Cost function
         double best_direction =
@@ -130,6 +136,31 @@ private:
         );
         // cập nhật hướng trước
         previous_direction_ = best_direction;
+        
+        
+        // UAV CONTROL
+        double best_direction_rad = best_direction * M_PI / 180.0;
+        double yaw = current_yaw_ + best_direction_rad;
+        double min_dist = 100.0;
+        for(auto r : msg->ranges)
+        {
+            if(std::isfinite(r))
+                min_dist = std::min(min_dist, (double)r);
+        }
+
+        double speed = 2.0;
+        if(min_dist < 2.0) speed = 1.0;
+        if(min_dist < 1.0) speed = 0.5;
+
+        // ===== OFFBOARD COMMAND =====
+        double vx = cos(yaw) * speed;
+        double vy = sin(yaw) * speed;
+        double vz = -0.5;   // 🔥 bay lên (NED)
+
+        offboard_->sendVelocityCommand(
+            vx, vy, vz, yaw
+        );
+
 
         // Publish
         publishPoints(points);
@@ -340,7 +371,15 @@ private:
 
     void odomCallback(const nav_msgs::msg::Odometry::SharedPtr msg)
     {
-        current_altitude_ = msg->pose.pose.position.z;
+         current_altitude_ = msg->pose.pose.position.z;
+
+        const auto &q = msg->pose.pose.orientation;
+        tf2::Quaternion quat(q.x, q.y, q.z, q.w);
+
+        double roll, pitch, yaw;
+        tf2::Matrix3x3(quat).getRPY(roll, pitch, yaw);
+
+        current_yaw_ = yaw;
     }
 
 
@@ -353,7 +392,8 @@ private:
     rclcpp::Publisher<std_msgs::msg::Float32MultiArray>::SharedPtr plot_pub_;
     rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr candidate_pub_;
     rclcpp::Publisher<visualization_msgs::msg::Marker>::SharedPtr best_dir_pub_;
-
+    
+    std::shared_ptr<OffboardControl> offboard_;
     LidarProcessing lidar_;
     HistogramGrid histogram_;
     PolarHistogram polar_hist_;
@@ -361,15 +401,23 @@ private:
     CandidateSearch candidate_search_;
     CostFunction cost_function_;
 
+
     double current_altitude_;
+    double current_yaw_;
     double previous_direction_ = 0.0;
 };
 
 int main(int argc, char **argv)
 {
     rclcpp::init(argc, argv);
-    auto node = std::make_shared<VFHStarNode>();
-    rclcpp::spin(node);
+    auto offboard_node = std::make_shared<OffboardControl>();
+    auto node = std::make_shared<VFHStarNode>(offboard_node);
+    
+    rclcpp::executors::MultiThreadedExecutor executor;
+    executor.add_node(node);
+    executor.add_node(offboard_node);
+    executor.spin();
+
     rclcpp::shutdown();
     return 0;
 }

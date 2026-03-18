@@ -23,6 +23,7 @@ include_directories(include)
 # =========================
 
 add_executable(vfh_star_node
+  src/offboard_controll.cpp
   src/binary_histogram.cpp
   src/vfh_star_node.cpp
   src/histogram_grid.cpp
@@ -39,6 +40,7 @@ ament_target_dependencies(vfh_star_node
   nav_msgs
   geometry_msgs
   std_msgs
+  tf2
 )
 
 # =========================

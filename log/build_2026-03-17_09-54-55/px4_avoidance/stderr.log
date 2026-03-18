@@ -1,0 +1,22 @@
+[01m[K/home/hung/ws_offboard_control/src/px4_avoidance/src/candidate_search.cpp:[m[K In member function ‘[01m[Kstd::vector<double> CandidateSearch::[01;32m[KfindCandidates[m[K(const std::vector<int>&, int)[m[K’:
+[01m[K/home/hung/ws_offboard_control/src/px4_avoidance/src/candidate_search.cpp:48:18:[m[K [01;31m[Kerror: [m[K‘[01m[Kcout[m[K’ is not a member of ‘[01m[Kstd[m[K’
+   48 |             std::[01;31m[Kcout[m[K << "Opening: [" << kr << ", " << kl << "]\n";
+      |                  [01;31m[K^~~~[m[K
+[01m[K/home/hung/ws_offboard_control/src/px4_avoidance/src/candidate_search.cpp:4:1:[m[K [01;36m[Knote: [m[K‘[01m[Kstd::cout[m[K’ is defined in header ‘[01m[K<iostream>[m[K’; did you forget to ‘[01m[K#include <iostream>[m[K’?
+    3 | #include <algorithm>
+  +++ |+[32m[K#include <iostream>[m[K
+    4 | 
+[01m[K/home/hung/ws_offboard_control/src/px4_avoidance/src/candidate_search.cpp:49:18:[m[K [01;31m[Kerror: [m[K‘[01m[Kcout[m[K’ is not a member of ‘[01m[Kstd[m[K’
+   49 |             std::[01;31m[Kcout[m[K << "cr = " << cr << ", cl = " << cl << std::endl;
+      |                  [01;31m[K^~~~[m[K
+[01m[K/home/hung/ws_offboard_control/src/px4_avoidance/src/candidate_search.cpp:49:18:[m[K [01;36m[Knote: [m[K‘[01m[Kstd::cout[m[K’ is defined in header ‘[01m[K<iostream>[m[K’; did you forget to ‘[01m[K#include <iostream>[m[K’?
+[01m[K/home/hung/ws_offboard_control/src/px4_avoidance/src/candidate_search.cpp:49:67:[m[K [01;31m[Kerror: [m[K‘[01m[Kendl[m[K’ is not a member of ‘[01m[Kstd[m[K’
+   49 |             std::cout << "cr = " << cr << ", cl = " << cl << std::[01;31m[Kendl[m[K;
+      |                                                                   [01;31m[K^~~~[m[K
+[01m[K/home/hung/ws_offboard_control/src/px4_avoidance/src/candidate_search.cpp:4:1:[m[K [01;36m[Knote: [m[K‘[01m[Kstd::endl[m[K’ is defined in header ‘[01m[K<ostream>[m[K’; did you forget to ‘[01m[K#include <ostream>[m[K’?
+    3 | #include <algorithm>
+  +++ |+[32m[K#include <ostream>[m[K
+    4 | 
+gmake[2]: *** [CMakeFiles/vfh_star_node.dir/build.make:146: CMakeFiles/vfh_star_node.dir/src/candidate_search.cpp.o] Error 1
+gmake[1]: *** [CMakeFiles/Makefile2:139: CMakeFiles/vfh_star_node.dir/all] Error 2
+gmake: *** [Makefile:146: all] Error 2

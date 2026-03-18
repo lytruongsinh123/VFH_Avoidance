@@ -24,8 +24,8 @@ public:
 
     VFHStarNode() : Node("vfh_star_node"), 
     lidar_(30.0), 
-    binary_hist_(54), 
-    candidate_search_(18, -135.0, 15.0), 
+    binary_hist_(27), 
+    candidate_search_(27, -135.0, 10.0), 
     cost_function_(5.0, 2.0, 2.0),
     current_altitude_(0.0)
     {
@@ -98,8 +98,7 @@ private:
             polar_hist_.hist.end()
         );
         // thêm threshold
-        plot_msg.data.push_back(binary_hist_.getTlow());
-        plot_msg.data.push_back(binary_hist_.getThigh());
+        plot_msg.data.push_back(binary_hist_.getThreshold());
         plot_pub_->publish(plot_msg);
 
         // Build Binary Histogram

@@ -17,48 +17,59 @@ class PlotNode(Node):
             self.callback,
             10)
 
-        # góc từ -135 → 135 mỗi 10 độ
-        self.angles = np.arange(-135, 136, 15)
+        # ===== CẤU HÌNH VFH =====
+        self.ALPHA = 10.0
+        self.ANGLE_MIN = -135.0
 
+        # ===== PLOT =====
         plt.ion()
-        plt.figure(figsize=(10,5))
+        self.fig, self.ax = plt.subplots(figsize=(10, 5))
 
     def callback(self, msg):
 
-        plt.clf()
+        self.ax.clear()
 
         data = np.array(msg.data)
 
-        # tách threshold
+        # ===== TÁCH DATA =====
         T_low = data[-2]
         T_high = data[-1]
-
-        # histogram
         values = data[:-2]
 
-        # đảm bảo kích thước khớp
-        n = min(len(values), len(self.angles))
+        SECTOR = len(values)
 
-        angles = self.angles[:n]
-        values = values[:n]
+        # ===== GÓC TÂM SECTOR =====
+        angles = np.array([
+            self.ANGLE_MIN + (k + 0.5) * self.ALPHA
+            for k in range(SECTOR)
+        ])
 
-        # vẽ histogram
-        plt.bar(angles, values, width=4)
+        # ===== VẼ HISTOGRAM =====
+        self.ax.bar(
+            angles,
+            values,
+            width=self.ALPHA*0.8,
+            align='center'
+        )
 
-        # vẽ threshold
-        plt.axhline(T_low, linestyle='--', label='T_low')
-        plt.axhline(T_high, linestyle='--', label='T_high')
+        # ===== THRESHOLD =====
+        self.ax.axhline(T_low, linestyle='--', label='T_low')
+        self.ax.axhline(T_high, linestyle='--', label='T_high')
 
-        plt.xlabel("Angle (deg)")
-        plt.ylabel("H(k)")
-        plt.title("Polar Histogram")
+        # ===== LABEL =====
+        self.ax.set_xlabel("Angle (deg)")
+        self.ax.set_ylabel("H(k)")
+        self.ax.set_title("Polar Histogram (center-based)")
 
-        plt.xlim(-135, 135)
+        # ===== TRỤC =====
+        self.ax.set_xlim(-135, 135)
 
-        plt.xticks(range(-135, 136, 15), rotation=90)
+        # ✅ HIỂN THỊ ĐÚNG TÂM (QUAN TRỌNG)
+        self.ax.set_xticks(angles)
+        self.ax.set_xticklabels([f"{int(a)}" for a in angles], rotation=90)
 
-        plt.grid(True)
-        plt.legend()
+        self.ax.grid(True)
+        self.ax.legend()
 
         plt.pause(0.01)
 

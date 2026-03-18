@@ -1,7 +1,7 @@
 #include "px4_avoidance/candidate_search.hpp"
 #include <cmath>
 #include <algorithm>
-
+#include "rclcpp/rclcpp.hpp"
 CandidateSearch::CandidateSearch(
         int sectors,
         double angle_min,
@@ -21,7 +21,7 @@ std::vector<double> CandidateSearch::findCandidates(
 
     findOpenings(B, openings);
 
-    int smax = std::round(30.0 / sector_angle_);
+    int smax = std::round(20.0 / sector_angle_);
 
     for(const auto& op : openings)
     {
@@ -43,12 +43,16 @@ std::vector<double> CandidateSearch::findCandidates(
         {
             int cr = std::min(sectors_-1, kr + smax/2);
             int cl = std::max(0, kl - smax/2);
-
+            
+            // ===== IN RA =====
+            RCLCPP_INFO(rclcpp::get_logger("candidate_search"),
+            "Opening [%d, %d] | cr=%d cl=%d",
+            kr, kl, cr, cl);
             double angle_r =
-                angle_min_ + cr * sector_angle_;
+                angle_min_ + (cr) * sector_angle_;
 
             double angle_l =
-                angle_min_ + cl * sector_angle_;
+                angle_min_ + (cl) * sector_angle_;
 
             candidates.push_back(angle_r);
             candidates.push_back(angle_l);
